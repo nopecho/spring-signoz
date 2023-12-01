@@ -1,4 +1,4 @@
-package io.nopecho.sleuth
+package io.nopecho.sample
 
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.SpringBootApplication

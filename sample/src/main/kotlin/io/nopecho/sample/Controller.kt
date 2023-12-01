@@ -1,4 +1,4 @@
-package io.nopecho.sleuth
+package io.nopecho.sample
 
 import io.micrometer.observation.annotation.Observed
 import org.springframework.http.ResponseEntity

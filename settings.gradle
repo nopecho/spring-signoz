@@ -1,3 +1,2 @@
 rootProject.name = "spring-signoz"
-include 'sleuth'
-
+include "sample"

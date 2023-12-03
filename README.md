@@ -26,6 +26,33 @@ helm -n platform install signoz-v1 signoz/signoz
   * http://localhost:3301/
 ```shell
 export SIGNOZ_SERVICE_NAME=$(kubectl get svc -n platform -l "app.kubernetes.io/component=frontend" -o jsonpath="{.items[0].metadata.name}")
-
 kubectl -n platform port-forward svc/$SIGNOZ_SERVICE_NAME 3301:3301
+```
+
+* OpenTelemetry Operator 
+```shell
+kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releases/download/v0.79.0/opentelemetry-operator.yaml
+```
+
+* 애플리케이션 사이드카 설정
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ your app }}
+  labels:
+    app: {{ your app }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ your app }}
+  template:
+    metadata:
+      name: {{ your app }}
+      labels:
+        app: {{ your app }}
+      annotations:
+        sidecar.opentelemetry.io/inject: "true"
+        instrumentation.opentelemetry.io/inject-java: "true"
 ```

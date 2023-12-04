@@ -1,2 +1,3 @@
 rootProject.name = "spring-signoz"
-include "sample"
+include "bootstrap"
+include "bootstrap:sample"

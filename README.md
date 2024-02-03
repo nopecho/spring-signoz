@@ -29,12 +29,72 @@ export SIGNOZ_SERVICE_NAME=$(kubectl get svc -n platform -l "app.kubernetes.io/c
 kubectl -n platform port-forward svc/$SIGNOZ_SERVICE_NAME 3301:3301
 ```
 
-* OpenTelemetry Operator 
+---
+
+## OpenTelemetry Auto-Instrumentation (Kubernetes)
+
+1. OpenTelemetry Operator 추가
 ```shell
-kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releases/download/v0.79.0/opentelemetry-operator.yaml
+kubectl apply -f https://github.com/open-telemetry/opentelemetry-operator/releases/latest/download/opentelemetry-operator.yaml
 ```
 
-* 애플리케이션 사이드카 설정
+2. OpenTelemetry Collector 추가
+```yaml
+apiVersion: opentelemetry.io/v1alpha1
+kind: OpenTelemetryCollector
+metadata:
+  name: signoz-otel-collector
+spec:
+  mode: sidecar
+  config: |
+    receivers:
+      otlp:
+        protocols:
+          http:
+          grpc:
+    processors:
+      batch:
+    exporters:
+      logging:
+      otlp:
+        endpoint: http://signoz-v1-otel-collector.platform.svc.cluster.local:4317
+        tls:
+          insecure: true
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [logging, otlp]
+        metrics:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [logging, otlp]
+        logs:
+          receivers: [otlp]
+          processors: [batch]
+          exporters: [logging, otlp]
+```
+
+3. OpenTelemetry Instrumentation 추가
+```yaml
+apiVersion: opentelemetry.io/v1alpha1
+kind: Instrumentation
+metadata:
+  name: otel-instrumentation
+spec:
+  propagators:
+    - tracecontext
+    - baggage
+    - b3
+  sampler:
+    type: parentbased_always_on
+  java:
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-java:latest
+  nodejs:
+    image: ghcr.io/open-telemetry/opentelemetry-operator/autoinstrumentation-nodejs:latest
+```
+4. Pod sidecar 추가
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -43,7 +103,7 @@ metadata:
   labels:
     app: {{ your app }}
 spec:
-  replicas: 1
+  replicas: 100
   selector:
     matchLabels:
       app: {{ your app }}

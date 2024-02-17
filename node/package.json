@@ -1,0 +1,8 @@
+{
+  "name": "node-opentelemetry",
+  "dependencies": {
+    "@opentelemetry/auto-instrumentations-node": "^node version",
+    "@opentelemetry/exporter-trace-otlp-http": "^node version",
+    "@opentelemetry/sdk-node": "^node version"
+  }
+}
